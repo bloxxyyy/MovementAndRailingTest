@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Linq;
 using UnityEngine;
 
 public class Rail : MonoBehaviour
@@ -7,7 +8,7 @@ public class Rail : MonoBehaviour
     public class MovementData
     {
         public float speed;
-        public float rotation;
+        public Vector3 rotation;
     }
 
     // Public
@@ -48,11 +49,17 @@ public class Rail : MonoBehaviour
 
                     if (playerSpeed < 2f) playerSpeed = 2f; // safeguard
 
-                    if (Vector3.Angle(player.transform.forward, p2 - p1) > 90)
+                    if (Vector3.Angle(data.rotation, p2 - p1) > 90)
+                    {
                         Array.Reverse(points);
+                        currentPointIndex = points.Length - 2 - i; // TODO Most likely a bug when you add more than 4 points
+
+                    } else
+                    {
+                        currentPointIndex = i;
+                    }
 
                     playerAttached = true;
-                    currentPointIndex = i;
                     firstHitPoint = point;
                     break;
                 }
@@ -68,6 +75,9 @@ public class Rail : MonoBehaviour
     void MovePlayerAlongRail() {
         Vector3 targetPosition = transform.position + points[currentPointIndex];
         if (firstHitPoint != Vector3.zero) targetPosition = firstHitPoint;
+
+        Debug.DrawLine(player.transform.position, targetPosition, Color.blue);
+
         player.transform.position = Vector3.MoveTowards(player.transform.position, targetPosition, Time.deltaTime * playerSpeed);
 
         if (Vector3.Distance(player.transform.position, targetPosition) < 0.01f)

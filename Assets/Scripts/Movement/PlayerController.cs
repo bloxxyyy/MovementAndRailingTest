@@ -57,7 +57,7 @@ public class PlayerController : MonoBehaviour {
     {
         transform.GetComponent<CapsuleCollider>().enabled = false;
         isGrinding = true;
-        return new MovementData { speed = currentSpeed, rotation = transform.rotation.eulerAngles.y };
+        return new MovementData { speed = currentSpeed, rotation = transform.forward };
     }
 
     private void OnRailLeaving()
