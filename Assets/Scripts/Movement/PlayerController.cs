@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using static Rail;
 
@@ -26,6 +27,7 @@ public class PlayerController : MonoBehaviour {
     private float                          currentSpeed        = 0f;
     private Rail[]                         rail;
     private bool                           isGrinding          = false;
+    private GlobalData                     globalData;
 
     #endregion
 
@@ -33,19 +35,25 @@ public class PlayerController : MonoBehaviour {
 
     private void Awake()
     {
+        globalData = FindObjectOfType<GlobalData>();
+        if (globalData == null) Debug.LogError("GlobalData not found in scene");
+
         rail = FindObjectsOfType<Rail>();
         foreach (Rail r in rail)
         {
-            r.OnRailGrinding += OnRailGrinding;
+            r.OnRailGrindingReturnData += OnRailGrinding;
             r.OnRailLeaving += OnRailLeaving;
         }
     }
 
     private void Update() {
-        if (isGrinding) return;
-        HandleMovement();
-        HandleRotation();
-        HandleUpright();
+        if (!isGrinding)
+        {
+            HandleMovement();
+            HandleRotation();
+            HandleUpright();
+        }
+
         jumpBehaviour.HandleJumpBehaviour();
     }
 
@@ -53,17 +61,23 @@ public class PlayerController : MonoBehaviour {
 
     #region Rail Events
 
-    private MovementData OnRailGrinding()
+    private MovementData OnRailGrinding(GameObject other)
     {
-        transform.GetComponent<CapsuleCollider>().enabled = false;
         isGrinding = true;
+        globalData.SetRailPlayerIsCurrentlyGrindingOn(other);
         return new MovementData { speed = currentSpeed, rotation = transform.forward };
     }
 
     private void OnRailLeaving()
     {
-        transform.GetComponent<CapsuleCollider>().enabled = true;
         isGrinding = false;
+        StartCoroutine(AwaitForRailCollision());
+    }
+
+    private IEnumerator AwaitForRailCollision()
+    {
+        yield return new WaitForSeconds(.1f);
+        globalData.SetRailPlayerIsCurrentlyGrindingOn(null);
     }
 
     #endregion
@@ -76,7 +90,8 @@ public class PlayerController : MonoBehaviour {
         {
             currentSpeed += forwardAcceleration * Time.deltaTime;
             currentSpeed = Mathf.Clamp(currentSpeed, 0, maxSpeed);
-        } else
+        } 
+        else
         {
             currentSpeed = Mathf.MoveTowards(currentSpeed, 0, forwardAcceleration * Time.deltaTime);
         }
@@ -100,7 +115,7 @@ public class PlayerController : MonoBehaviour {
         transform.rotation = Quaternion.Euler(0, newYRotation, 0);
     }
 
-    private void HandleUpright()
+    private void HandleUpright() // todo use for ramps
     {
         Quaternion rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
         transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.deltaTime * keepUpright);

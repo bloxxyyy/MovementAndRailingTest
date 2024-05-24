@@ -279,7 +279,7 @@ MonoBehaviour:
   maxJumpForce: 10
   minJumpForce: 5
   jumpChargeRate: 5
-  groundCheckDistance: 0.8
+  groundCheckDistance: 1
   groundLayer:
     serializedVersion: 2
     m_Bits: 64
@@ -364,10 +364,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   points:
-  - {x: 0, y: 0.5, z: -8.7}
-  - {x: 0, y: 1.5, z: -4.7}
-  - {x: 0, y: 1.5, z: 2.7}
-  - {x: 0, y: 0.5, z: 7.2}
+  - {x: 0, y: 0.7, z: -8.7}
+  - {x: 0, y: 1.7, z: -4.7}
+  - {x: 0, y: 1.7, z: 2.7}
+  - {x: 0, y: 0.7, z: 7.2}
   playerRailDistanceThreshold: 1
   player: {fileID: 44985819}
 --- !u!1 &181003304
@@ -860,6 +860,51 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!1 &489271132
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 489271134}
+  - component: {fileID: 489271133}
+  m_Layer: 0
+  m_Name: Global Data
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &489271133
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 489271132}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d85255c60bbbfb1468c8d00ed546dd55, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  RailPlayerIsCurrentlyGrindingOn: {fileID: 0}
+--- !u!4 &489271134
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 489271132}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &832517479
 GameObject:
   m_ObjectHideFlags: 0
@@ -1353,3 +1398,4 @@ SceneRoots:
   - {fileID: 44985822}
   - {fileID: 108809170}
   - {fileID: 181003308}
+  - {fileID: 489271134}

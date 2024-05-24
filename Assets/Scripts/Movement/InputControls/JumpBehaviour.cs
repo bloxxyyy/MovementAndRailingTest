@@ -15,6 +15,9 @@ public class JumpBehaviour : MonoBehaviour {
     private bool    isChargingJump    = false;
     private float   currentJumpCharge = 0f;
     private bool    isGrounded        = false;
+    private bool    isGrinding        = false;
+    private Rail[]  rail;
+    private GlobalData globalData;
 
     // Consts
     private const float gravity = 9.81f;
@@ -23,11 +26,24 @@ public class JumpBehaviour : MonoBehaviour {
 
     #region Public Methods
 
+    private void Awake()
+    {
+        globalData = FindObjectOfType<GlobalData>();
+        if (globalData == null) Debug.LogError("GlobalData not found in scene");
+
+        rail = FindObjectsOfType<Rail>();
+        foreach (Rail r in rail)
+        {
+            r.OnRailGrinding += () => isGrinding = true;
+            r.OnRailLeaving  += () => isGrinding = false;
+        }
+    }
+
     public void HandleJumpBehaviour()
     {
-        CheckGrounded();
+        if (!isGrinding) CheckGrounded();
         HandleJump();
-        HandleGravity();
+        if (!isGrinding) HandleGravity();
     }
 
     #endregion
@@ -41,7 +57,7 @@ public class JumpBehaviour : MonoBehaviour {
 
     private void HandleJump()
     {
-        if (isGrounded)
+        if (isGrounded || isGrinding)
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
@@ -53,8 +69,7 @@ public class JumpBehaviour : MonoBehaviour {
             }
         }
 
-        if (isChargingJump)
-            ChargeJump();
+        if (isChargingJump) ChargeJump();
     }
 
     private void ChargeJump()
@@ -69,6 +84,8 @@ public class JumpBehaviour : MonoBehaviour {
         velocity.y = Mathf.Lerp(minJumpForce, maxJumpForce, currentJumpCharge / maxJumpForce);
         currentJumpCharge = 0f;
         transform.position += velocity * Time.deltaTime;
+        if (isGrinding)
+            globalData.GetRailPlayerIsCurrentlyGrindingOn().GetComponent<Rail>().DetachFromRail();
     }
 
     private void HandleGravity()

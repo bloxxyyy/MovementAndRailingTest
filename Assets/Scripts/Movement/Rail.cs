@@ -24,12 +24,22 @@ public class Rail : MonoBehaviour
     private Vector3 firstHitPoint = Vector3.zero;
 
     // Events
-    public Func<MovementData> OnRailGrinding; // returns current character speed
+    public Func<GameObject, MovementData> OnRailGrindingReturnData;
+    public Action OnRailGrinding;
     public Action OnRailLeaving;
 
     private void Update() {
         if (!playerAttached && !disabled) TryAttachPlayerToRail();
         else if (playerAttached) MovePlayerAlongRail();
+    }
+
+    public void DetachFromRail()
+    {
+        disabled = true;
+        firstHitPoint = Vector3.zero;
+        playerAttached = false;
+        OnRailLeaving?.Invoke();
+        StartCoroutine(EnableRail());
     }
 
     private void TryAttachPlayerToRail() {
@@ -44,7 +54,8 @@ public class Rail : MonoBehaviour
 
                 if (IsNearVector(point))
                 {
-                    var data = OnRailGrinding?.Invoke();
+                    var data = OnRailGrindingReturnData?.Invoke(gameObject);
+                    OnRailGrinding?.Invoke();
                     playerSpeed = data.speed;
 
                     if (playerSpeed < 2f) playerSpeed = 2f; // safeguard
@@ -72,7 +83,7 @@ public class Rail : MonoBehaviour
         return Vector3.Distance(player.transform.position, vector) < playerRailDistanceThreshold;
     }
 
-    void MovePlayerAlongRail() {
+    private void MovePlayerAlongRail() {
         Vector3 targetPosition = transform.position + points[currentPointIndex];
         if (firstHitPoint != Vector3.zero) targetPosition = firstHitPoint;
 
@@ -86,10 +97,7 @@ public class Rail : MonoBehaviour
 
             if (currentPointIndex == points.Length - 1)
             {
-                disabled = true;
-                playerAttached = false;
-                OnRailLeaving?.Invoke();
-                StartCoroutine(EnableRail());
+                DetachFromRail();
             } else
             {
                 currentPointIndex++;
@@ -97,7 +105,7 @@ public class Rail : MonoBehaviour
         }
     }
 
-    IEnumerator EnableRail()
+    private IEnumerator EnableRail()
     {
         yield return new WaitForSeconds(1);
         disabled = false;
