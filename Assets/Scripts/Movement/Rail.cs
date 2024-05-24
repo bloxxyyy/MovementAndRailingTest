@@ -4,6 +4,11 @@ using UnityEngine;
 
 public class Rail : MonoBehaviour
 {
+    public class MovementData
+    {
+        public float speed;
+        public float rotation;
+    }
 
     // Public
     [SerializeField] private Vector3[] points;
@@ -13,11 +18,12 @@ public class Rail : MonoBehaviour
     // Private
     private bool playerAttached = false;
     private int currentPointIndex = 0;
-    private float speed = 0f;
+    private float playerSpeed = 0f;
     private bool disabled = false;
+    private Vector3 firstHitPoint = Vector3.zero;
 
     // Events
-    public Func<float> OnRailGrinding; // returns current character speed
+    public Func<MovementData> OnRailGrinding; // returns current character speed
     public Action OnRailLeaving;
 
     private void Update() {
@@ -28,22 +34,46 @@ public class Rail : MonoBehaviour
     private void TryAttachPlayerToRail() {
         for (int i = 0; i < points.Length; i++)
         {
-            if (Vector3.Distance(player.transform.position, transform.position + points[i]) < playerRailDistanceThreshold)
+            if (i < points.Length - 1)
             {
-                speed = (float)(OnRailGrinding?.Invoke());
-                playerAttached = true;
-                currentPointIndex = i;
-                break;
+                var p1 = transform.position + points[i];
+                var p2 = transform.position + points[(i + 1)];
+                var p3 = player.transform.position;
+                var point = ClosestPointOnLineSegment(p1, p2, p3);
+
+                if (IsNearVector(point))
+                {
+                    var data = OnRailGrinding?.Invoke();
+                    playerSpeed = data.speed;
+
+                    if (playerSpeed < 2f) playerSpeed = 2f; // safeguard
+
+                    if (Vector3.Angle(player.transform.forward, p2 - p1) > 90)
+                        Array.Reverse(points);
+
+                    playerAttached = true;
+                    currentPointIndex = i;
+                    firstHitPoint = point;
+                    break;
+                }
             }
         }
     }
 
+    private bool IsNearVector(Vector3 vector)
+    {
+        return Vector3.Distance(player.transform.position, vector) < playerRailDistanceThreshold;
+    }
+
     void MovePlayerAlongRail() {
         Vector3 targetPosition = transform.position + points[currentPointIndex];
-        player.transform.position = Vector3.MoveTowards(player.transform.position, targetPosition, Time.deltaTime * speed);
+        if (firstHitPoint != Vector3.zero) targetPosition = firstHitPoint;
+        player.transform.position = Vector3.MoveTowards(player.transform.position, targetPosition, Time.deltaTime * playerSpeed);
 
         if (Vector3.Distance(player.transform.position, targetPosition) < 0.01f)
         {
+            if (firstHitPoint != Vector3.zero) firstHitPoint = Vector3.zero;
+
             if (currentPointIndex == points.Length - 1)
             {
                 disabled = true;
@@ -59,15 +89,35 @@ public class Rail : MonoBehaviour
 
     IEnumerator EnableRail()
     {
-        yield return new WaitForSeconds(5);
+        yield return new WaitForSeconds(1);
         disabled = false;
     }
 
-    void OnDrawGizmos() {
+    private void OnDrawGizmos() {
         for (int i = 0; i < points.Length; i++)
         {
             Gizmos.color = Color.red;
             Gizmos.DrawSphere(transform.position + points[i], 0.1f);
+
+            if (i < points.Length - 1)
+            {
+                var p1 = transform.position + points[i];
+                var p2 = transform.position + points[(i + 1)];
+                var p3 = player.transform.position;
+
+                var point = ClosestPointOnLineSegment(p1, p2, p3);
+                Gizmos.color = Color.green;
+                Gizmos.DrawSphere(point, 0.3f);
+            }
+
         }
+    }
+
+    private Vector3 ClosestPointOnLineSegment(Vector3 p1, Vector3 p2, Vector3 p3) {
+        Vector3 direction = p2 - p1;
+        float length = direction.magnitude; // make sure minus becomes the same as plus
+        direction.Normalize(); // value of 1
+        float t = Mathf.Clamp01(Vector3.Dot(p3 - p1, direction) / length);
+        return p1 + (direction * (t * length));
     }
 }

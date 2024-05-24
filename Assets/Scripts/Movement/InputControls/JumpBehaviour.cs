@@ -7,7 +7,7 @@ public class JumpBehaviour : MonoBehaviour {
     [SerializeField] private float maxJumpForce = 10f;
     [SerializeField] private float minJumpForce = 5f;
     [SerializeField] private float jumpChargeRate = 5f;
-    [SerializeField] private float groundCheckDistance = 0.1f;
+    [SerializeField] private float groundCheckDistance = 0.6f;
     [SerializeField] private LayerMask groundLayer;
 
     // Private

@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using static Rail;
 
 public class PlayerController : MonoBehaviour {
 
@@ -52,11 +53,11 @@ public class PlayerController : MonoBehaviour {
 
     #region Rail Events
 
-    private float OnRailGrinding()
+    private MovementData OnRailGrinding()
     {
         transform.GetComponent<CapsuleCollider>().enabled = false;
         isGrinding = true;
-        return currentSpeed;
+        return new MovementData { speed = currentSpeed, rotation = transform.rotation.eulerAngles.y };
     }
 
     private void OnRailLeaving()
