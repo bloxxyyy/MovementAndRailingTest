@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Linq;
 using UnityEngine;
 
 public class Rail : MonoBehaviour
@@ -9,28 +8,40 @@ public class Rail : MonoBehaviour
     {
         public float speed;
         public Vector3 rotation;
+        public Func<float, float> handleMovement;
+    }
+
+    [System.Serializable]
+    public struct Translation
+    {
+        [SerializeField] public Vector3 Position;
+        [SerializeField] public Vector3 Rotation;
     }
 
     // Public
-    [SerializeField] private Vector3[] points;
-    [SerializeField] private float playerRailDistanceThreshold = 0.5f;
+    [SerializeField] private Translation[] points2;
+    [SerializeField] private float      playerRailDistanceThreshold = 0.5f;
     [SerializeField] private GameObject player;
 
     // Private
-    private bool playerAttached = false;
-    private int currentPointIndex = 0;
-    private float playerSpeed = 0f;
-    private bool disabled = false;
-    private Vector3 firstHitPoint = Vector3.zero;
+    private bool    playerAttached    = false;
+    private int     currentPointIndex = 0;
+    private float   playerSpeed       = 0f;
+    private bool    disabled          = false;
+    private Vector3 firstHitPoint     = Vector3.zero;
 
     // Events
     public Func<GameObject, MovementData> OnRailGrindingReturnData;
-    public Action OnRailGrinding;
-    public Action OnRailLeaving;
+    public Action                         OnRailGrinding;
+    public Action                         OnRailLeaving;
+    private Func<float, float>            OnHandleMovement;
 
     private void Update() {
         if (!playerAttached && !disabled) TryAttachPlayerToRail();
         else if (playerAttached) MovePlayerAlongRail();
+
+        if (OnHandleMovement != null)
+            playerSpeed = OnHandleMovement.Invoke(playerSpeed);
     }
 
     public void DetachFromRail()
@@ -39,16 +50,17 @@ public class Rail : MonoBehaviour
         firstHitPoint = Vector3.zero;
         playerAttached = false;
         OnRailLeaving?.Invoke();
+        OnHandleMovement = null;
         StartCoroutine(EnableRail());
     }
 
     private void TryAttachPlayerToRail() {
-        for (int i = 0; i < points.Length; i++)
+        for (int i = 0; i < points2.Length; i++)
         {
-            if (i < points.Length - 1)
+            if (i < points2.Length - 1)
             {
-                var p1 = transform.position + points[i];
-                var p2 = transform.position + points[(i + 1)];
+                var p1 = transform.position + points2[i].Position;
+                var p2 = transform.position + points2[(i + 1)].Position;
                 var p3 = player.transform.position;
                 var point = ClosestPointOnLineSegment(p1, p2, p3);
 
@@ -57,15 +69,22 @@ public class Rail : MonoBehaviour
                     var data = OnRailGrindingReturnData?.Invoke(gameObject);
                     OnRailGrinding?.Invoke();
                     playerSpeed = data.speed;
-
-                    if (playerSpeed < 2f) playerSpeed = 2f; // safeguard
+                    OnHandleMovement += data.handleMovement;
 
                     if (Vector3.Angle(data.rotation, p2 - p1) > 90)
-                    {
-                        Array.Reverse(points);
-                        currentPointIndex = points.Length - 2 - i; // TODO Most likely a bug when you add more than 4 points
+                    {   
+                        for (int j = 0; j < points2.Length; j++)
+                        {
+                            points2[j].Rotation = new Vector3(
+                                0, // we dont use this
+                                -points2[j].Rotation.y,
+                                points2[j].Rotation.z + 180);
+                        }
 
-                    } else
+                        Array.Reverse(points2);
+                        currentPointIndex = points2.Length - 2 - i;
+                    }
+                    else
                     {
                         currentPointIndex = i;
                     }
@@ -84,10 +103,12 @@ public class Rail : MonoBehaviour
     }
 
     private void MovePlayerAlongRail() {
-        Vector3 targetPosition = transform.position + points[currentPointIndex];
+        Vector3 targetPosition = transform.position + points2[currentPointIndex].Position;
         if (firstHitPoint != Vector3.zero) targetPosition = firstHitPoint;
 
-        Debug.DrawLine(player.transform.position, targetPosition, Color.blue);
+        RotateTowardsPoint();
+
+        Debug.DrawLine(player.transform.position, targetPosition, Color.magenta);
 
         player.transform.position = Vector3.MoveTowards(player.transform.position, targetPosition, Time.deltaTime * playerSpeed);
 
@@ -95,13 +116,19 @@ public class Rail : MonoBehaviour
         {
             if (firstHitPoint != Vector3.zero) firstHitPoint = Vector3.zero;
 
-            if (currentPointIndex == points.Length - 1)
-            {
-                DetachFromRail();
-            } else
-            {
-                currentPointIndex++;
-            }
+            if (currentPointIndex == points2.Length - 1) DetachFromRail();
+            else currentPointIndex++;
+        }
+    }
+    private float rotationSpeed = 7f;
+    private void RotateTowardsPoint() {
+
+        var rotatePoint = points2[currentPointIndex].Rotation;
+        var targetRotation = Quaternion.Euler(rotatePoint.y, rotatePoint.z, rotatePoint.x);
+
+        if (player.transform.localRotation != targetRotation)
+        {
+            player.transform.localRotation = Quaternion.Slerp(player.transform.localRotation, targetRotation, rotationSpeed * Time.deltaTime);
         }
     }
 
@@ -112,20 +139,24 @@ public class Rail : MonoBehaviour
     }
 
     private void OnDrawGizmos() {
-        for (int i = 0; i < points.Length; i++)
+        for (int i = 0; i < points2.Length; i++)
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawSphere(transform.position + points[i], 0.1f);
+            Gizmos.DrawSphere(transform.position + points2[i].Position, 0.1f);
 
-            if (i < points.Length - 1)
+            if (i < points2.Length - 1)
             {
-                var p1 = transform.position + points[i];
-                var p2 = transform.position + points[(i + 1)];
+                var p1 = transform.position + points2[i].Position;
+                var p2 = transform.position + points2[(i + 1)].Position;
                 var p3 = player.transform.position;
 
                 var point = ClosestPointOnLineSegment(p1, p2, p3);
                 Gizmos.color = Color.green;
                 Gizmos.DrawSphere(point, 0.3f);
+
+                //var endPoint = p1 + (points2[i].Rotation.normalized * 2.0f);
+                //Gizmos.color = Color.blue;
+                //Gizmos.DrawLine(p1, endPoint);
             }
 
         }

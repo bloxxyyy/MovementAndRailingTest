@@ -45,13 +45,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97542b9bc35ec3a49bacf6a8f089e079, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  points:
-  - {x: 0, y: 0.7, z: -8.7}
-  - {x: 0, y: 1.7, z: -4.7}
-  - {x: 0, y: 1.7, z: 2.7}
-  - {x: 0, y: 0.7, z: 7.2}
+  points2: []
   playerRailDistanceThreshold: 1
   player: {fileID: 0}
+  playerRotationTowardsPointInSeconds: 300
 --- !u!1 &3059256702905374640
 GameObject:
   m_ObjectHideFlags: 0

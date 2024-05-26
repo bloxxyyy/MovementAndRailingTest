@@ -65,7 +65,11 @@ public class PlayerController : MonoBehaviour {
     {
         isGrinding = true;
         globalData.SetRailPlayerIsCurrentlyGrindingOn(other);
-        return new MovementData { speed = currentSpeed, rotation = transform.forward };
+        return new MovementData {
+            speed = currentSpeed,
+            rotation = transform.forward,
+            handleMovement = HandleMovement
+        };
     }
 
     private void OnRailLeaving()
@@ -84,19 +88,30 @@ public class PlayerController : MonoBehaviour {
 
     #region Logical Methods
 
-    private void HandleMovement()
+    /// <summary>
+    /// Given speed is a bit of a missuse here! It is only set when the player is grinding on a rail.
+    /// It is used to set the speed of the player when the player is grinding on a rail.
+    /// So we dont want to also do translation here when this is higher than 0 because the rail will handle that.
+    /// Deserves a refactor.
+    /// </summary>
+    /// <param name="giveSpeed"></param>
+    /// <returns></returns>
+    private float HandleMovement(float giveSpeed = -1)
     {
+        if (giveSpeed > 0) currentSpeed = giveSpeed;
+
         if (Input.GetKey(KeyCode.W))
         {
             currentSpeed += forwardAcceleration * Time.deltaTime;
             currentSpeed = Mathf.Clamp(currentSpeed, 0, maxSpeed);
-        } 
+        }
         else
         {
             currentSpeed = Mathf.MoveTowards(currentSpeed, 0, forwardAcceleration * Time.deltaTime);
         }
 
-        transform.position += currentSpeed * Time.deltaTime * transform.forward;
+        if (giveSpeed <= 0) transform.position += currentSpeed * Time.deltaTime * transform.forward;
+        return currentSpeed;
     }
 
     private void HandleRotation() {
