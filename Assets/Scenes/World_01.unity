@@ -277,8 +277,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f133cb17ebd6d241b398c2117a8e94f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxJumpForce: 10
-  minJumpForce: 5
+  maxJumpForce: 12
+  minJumpForce: 8
   jumpChargeRate: 5
   groundCheckDistance: 1
   groundLayer:
@@ -318,7 +318,7 @@ CapsuleCollider:
   m_Radius: 0.5
   m_Height: 0.6
   m_Direction: 1
-  m_Center: {x: 0, y: -0.5, z: 0}
+  m_Center: {x: 0, y: -0.35, z: 0}
 --- !u!1 &181003304
 GameObject:
   m_ObjectHideFlags: 0
@@ -2498,6 +2498,76 @@ PrefabInstance:
       propertyPath: player
       value: 
       objectReference: {fileID: 44985819}
+    - target: {fileID: 2961387423295509547, guid: 5acb179a132c1af4c9972097090b8ef9,
+        type: 3}
+      propertyPath: points2.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 2961387423295509547, guid: 5acb179a132c1af4c9972097090b8ef9,
+        type: 3}
+      propertyPath: points2.Array.data[0].Position.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2961387423295509547, guid: 5acb179a132c1af4c9972097090b8ef9,
+        type: 3}
+      propertyPath: points2.Array.data[0].Position.y
+      value: 0.7
+      objectReference: {fileID: 0}
+    - target: {fileID: 2961387423295509547, guid: 5acb179a132c1af4c9972097090b8ef9,
+        type: 3}
+      propertyPath: points2.Array.data[0].Position.z
+      value: -9.17
+      objectReference: {fileID: 0}
+    - target: {fileID: 2961387423295509547, guid: 5acb179a132c1af4c9972097090b8ef9,
+        type: 3}
+      propertyPath: points2.Array.data[0].Rotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2961387423295509547, guid: 5acb179a132c1af4c9972097090b8ef9,
+        type: 3}
+      propertyPath: points2.Array.data[1].Position.y
+      value: 2.02
+      objectReference: {fileID: 0}
+    - target: {fileID: 2961387423295509547, guid: 5acb179a132c1af4c9972097090b8ef9,
+        type: 3}
+      propertyPath: points2.Array.data[1].Position.z
+      value: -4.54
+      objectReference: {fileID: 0}
+    - target: {fileID: 2961387423295509547, guid: 5acb179a132c1af4c9972097090b8ef9,
+        type: 3}
+      propertyPath: points2.Array.data[1].Rotation.y
+      value: -35
+      objectReference: {fileID: 0}
+    - target: {fileID: 2961387423295509547, guid: 5acb179a132c1af4c9972097090b8ef9,
+        type: 3}
+      propertyPath: points2.Array.data[2].Position.y
+      value: 2.02
+      objectReference: {fileID: 0}
+    - target: {fileID: 2961387423295509547, guid: 5acb179a132c1af4c9972097090b8ef9,
+        type: 3}
+      propertyPath: points2.Array.data[2].Position.z
+      value: 2.67
+      objectReference: {fileID: 0}
+    - target: {fileID: 2961387423295509547, guid: 5acb179a132c1af4c9972097090b8ef9,
+        type: 3}
+      propertyPath: points2.Array.data[2].Rotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2961387423295509547, guid: 5acb179a132c1af4c9972097090b8ef9,
+        type: 3}
+      propertyPath: points2.Array.data[3].Position.y
+      value: 0.7
+      objectReference: {fileID: 0}
+    - target: {fileID: 2961387423295509547, guid: 5acb179a132c1af4c9972097090b8ef9,
+        type: 3}
+      propertyPath: points2.Array.data[3].Position.z
+      value: 7.46
+      objectReference: {fileID: 0}
+    - target: {fileID: 2961387423295509547, guid: 5acb179a132c1af4c9972097090b8ef9,
+        type: 3}
+      propertyPath: points2.Array.data[3].Rotation.y
+      value: 35
+      objectReference: {fileID: 0}
     - target: {fileID: 2961387423295509547, guid: 5acb179a132c1af4c9972097090b8ef9,
         type: 3}
       propertyPath: playerRotationTowardsPointInSeconds

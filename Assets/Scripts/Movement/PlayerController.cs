@@ -54,7 +54,7 @@ public class PlayerController : MonoBehaviour {
             HandleUpright();
         }
 
-        jumpBehaviour.HandleJumpBehaviour();
+        jumpBehaviour.HandleJumpInput();
     }
 
     #endregion

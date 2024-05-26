@@ -1,7 +1,9 @@
+using System;
+using UnityEditor.PackageManager;
 using UnityEngine;
 
-public class JumpBehaviour : MonoBehaviour {
-
+public class JumpBehaviour : MonoBehaviour
+{
     #region Properties
 
     [SerializeField] private float maxJumpForce = 10f;
@@ -11,51 +13,54 @@ public class JumpBehaviour : MonoBehaviour {
     [SerializeField] private LayerMask groundLayer;
 
     // Private
-    private Vector3 velocity          = Vector3.zero;
-    private bool    isChargingJump    = false;
-    private float   currentJumpCharge = 0f;
-    private bool    isGrounded        = false;
-    private bool    isGrinding        = false;
-    private Rail[]  rail;
+    private Vector3 velocity = Vector3.zero;
+    private bool isChargingJump = false;
+    private float currentJumpCharge = 0f;
+    private bool isGrounded = false;
+    private bool isGrinding = false;
+    private Rail[] rail;
     private GlobalData globalData;
+    private bool shouldJump = false;
 
     // Consts
-    private const float gravity = 9.81f;
+    private const float gravity = 9.81f * 2;
 
     #endregion
 
-    #region Public Methods
+    #region Unity Methods
 
     private void Awake()
     {
         globalData = FindObjectOfType<GlobalData>();
-        if (globalData == null) Debug.LogError("GlobalData not found in scene");
+        if (globalData == null)
+        {
+            Debug.LogError("GlobalData not found in scene");
+        }
 
         rail = FindObjectsOfType<Rail>();
         foreach (Rail r in rail)
         {
             r.OnRailGrinding += () => isGrinding = true;
-            r.OnRailLeaving  += () => isGrinding = false;
         }
     }
 
-    public void HandleJumpBehaviour()
+    private void FixedUpdate()
     {
-        if (!isGrinding) CheckGrounded();
-        HandleJump();
-        if (!isGrinding) HandleGravity();
+        if (!isGrinding)
+        {
+            isGrounded = Physics.CheckSphere(transform.position, groundCheckDistance, groundLayer);
+            HandleGravity();
+        }
+
+        Jump();
+        ApplyVelocity();
     }
 
     #endregion
 
     #region Logical Methods
 
-    private void CheckGrounded()
-    {
-        isGrounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance, groundLayer);
-    }
-
-    private void HandleJump()
+    public void HandleJumpInput()
     {
         if (isGrounded || isGrinding)
         {
@@ -65,11 +70,14 @@ public class JumpBehaviour : MonoBehaviour {
             } else if (Input.GetKeyUp(KeyCode.Space))
             {
                 isChargingJump = false;
-                Jump();
+                shouldJump = true;
             }
         }
 
-        if (isChargingJump) ChargeJump();
+        if (isChargingJump)
+        {
+            ChargeJump();
+        }
     }
 
     private void ChargeJump()
@@ -80,22 +88,31 @@ public class JumpBehaviour : MonoBehaviour {
 
     private void Jump()
     {
-        velocity = Vector3.zero;
-        velocity.y = Mathf.Lerp(minJumpForce, maxJumpForce, currentJumpCharge / maxJumpForce);
+        if (!shouldJump) return;
+        if (shouldJump) shouldJump = false;
+
+        velocity.y += Mathf.Lerp(minJumpForce, maxJumpForce, currentJumpCharge / maxJumpForce);
         currentJumpCharge = 0f;
-        transform.position += velocity * Time.deltaTime;
+
         if (isGrinding)
-            globalData.GetRailPlayerIsCurrentlyGrindingOn().GetComponent<Rail>().DetachFromRail();
+        {
+            globalData.GetRailPlayerIsCurrentlyGrindingOn()?.GetComponent<Rail>()?.DetachFromRail();
+            isGrinding = false;
+        }
     }
 
     private void HandleGravity()
     {
         if (!isGrounded)
         {
-            velocity.y -= gravity * Time.deltaTime;
-            transform.position += velocity * Time.deltaTime;
+            velocity.y -= gravity * Time.fixedDeltaTime;
+        } else if (velocity.y < 0)
+        {
+            velocity.y = 0;
         }
     }
+
+    private void ApplyVelocity() => transform.position += velocity * Time.fixedDeltaTime;
 
     #endregion
 }
