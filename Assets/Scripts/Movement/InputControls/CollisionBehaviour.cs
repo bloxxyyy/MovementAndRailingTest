@@ -19,12 +19,21 @@ public class CollisionBehaviour : MonoBehaviour
             if (foundParent == null)
                 Debug.LogError("Railing parent with tag not found!");
 
-            if (globalData.GetRailPlayerIsCurrentlyGrindingOn() == null
-                || foundParent.gameObject != globalData.GetRailPlayerIsCurrentlyGrindingOn())
-            {
+            if (NotOnRail(foundParent) && NotOnSlope(foundParent))
                 HandleCollisionDetection();
-            }
         }
+    }
+
+    private bool NotOnSlope(Transform foundParent)
+    {
+        return globalData.GetSlopePlayerIsCurrentlyUsing() == null ||
+                        foundParent.gameObject != globalData.GetSlopePlayerIsCurrentlyUsing();
+    }
+
+    private bool NotOnRail(Transform foundParent)
+    {
+        return globalData.GetRailPlayerIsCurrentlyGrindingOn() == null ||
+                        foundParent.gameObject != globalData.GetRailPlayerIsCurrentlyGrindingOn();
     }
 
     private Transform CheckNextParent(Transform transform)

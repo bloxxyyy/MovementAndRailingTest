@@ -26,7 +26,9 @@ public class PlayerController : MonoBehaviour {
     // Private
     private float                          currentSpeed        = 0f;
     private Rail[]                         rail;
+    private Slope[]                        slope;
     private bool                           isGrinding          = false;
+    private bool                           isOnSlope           = false;
     private GlobalData                     globalData;
 
     #endregion
@@ -39,10 +41,17 @@ public class PlayerController : MonoBehaviour {
         if (globalData == null) Debug.LogError("GlobalData not found in scene");
 
         rail = FindObjectsOfType<Rail>();
+        slope = FindObjectsOfType<Slope>();
         foreach (Rail r in rail)
         {
             r.OnRailGrindingReturnData += OnRailGrinding;
             r.OnRailLeaving += OnRailLeaving;
+        }
+
+        foreach (Slope s in slope)
+        {
+            s.OnSlopeEnter += OnSlopeEnter;
+            s.OnSlopeExit += OnSlopeExit;
         }
     }
 
@@ -50,8 +59,12 @@ public class PlayerController : MonoBehaviour {
         if (!isGrinding)
         {
             HandleMovement();
-            HandleRotation();
-            HandleUpright();
+
+            if (!isOnSlope)
+            {
+                HandleRotation();
+                HandleUpright();
+            }
         }
 
         jumpBehaviour.HandleJumpInput();
@@ -60,6 +73,24 @@ public class PlayerController : MonoBehaviour {
     #endregion
 
     #region Rail Events
+
+    private void OnSlopeEnter(GameObject other)
+    {
+        globalData.SetSlopePlayerIsCurrentlyUsing(other);
+        isOnSlope = true;
+    }
+
+    private void OnSlopeExit()
+    {
+        StartCoroutine(AwaitForSlopeCollision());
+        isOnSlope = false;
+    }
+
+    private IEnumerator AwaitForSlopeCollision()
+    {
+        yield return new WaitForSeconds(.1f);
+        globalData.SetSlopePlayerIsCurrentlyUsing(null);
+    }
 
     private MovementData OnRailGrinding(GameObject other)
     {

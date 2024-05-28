@@ -20,8 +20,8 @@ public class Rail : MonoBehaviour
 
     // Public
     [SerializeField] private Translation[] points2;
-    [SerializeField] private float      playerRailDistanceThreshold = 0.5f;
-    [SerializeField] private GameObject player;
+    [SerializeField] private float         playerRailDistanceThreshold = 0.5f;
+    [SerializeField] private GameObject    player;
 
     // Private
     private bool    playerAttached    = false;
@@ -110,7 +110,10 @@ public class Rail : MonoBehaviour
 
         Debug.DrawLine(player.transform.position, targetPosition, Color.magenta);
 
-        player.transform.position = Vector3.MoveTowards(player.transform.position, targetPosition, Time.deltaTime * playerSpeed);
+        if (firstHitPoint != Vector3.zero)
+            player.transform.position = firstHitPoint;
+        else
+            player.transform.position = Vector3.MoveTowards(player.transform.position, targetPosition, Time.deltaTime * playerSpeed);
 
         if (Vector3.Distance(player.transform.position, targetPosition) < 0.01f)
         {
@@ -134,7 +137,7 @@ public class Rail : MonoBehaviour
 
     private IEnumerator EnableRail()
     {
-        yield return new WaitForSeconds(1);
+        yield return new WaitForSeconds(.25f);
         disabled = false;
     }
 

@@ -18,7 +18,9 @@ public class JumpBehaviour : MonoBehaviour
     private float currentJumpCharge = 0f;
     private bool isGrounded = false;
     private bool isGrinding = false;
+    private bool isOnSlope = false;
     private Rail[] rail;
+    private Slope[] slope;
     private GlobalData globalData;
     private bool shouldJump = false;
 
@@ -41,19 +43,29 @@ public class JumpBehaviour : MonoBehaviour
         foreach (Rail r in rail)
         {
             r.OnRailGrinding += () => isGrinding = true;
+            r.OnRailLeaving += () => isGrinding = false;
+        }
+
+        slope = FindObjectsOfType<Slope>();
+        foreach (Slope s in slope)
+        {
+            s.OnSlopeEnter += (_) => isOnSlope = true;
+            s.OnSlopeExit += () => isOnSlope = false;
         }
     }
 
     private void FixedUpdate()
     {
-        if (!isGrinding)
+        if (!isGrinding && !isOnSlope)
         {
             isGrounded = Physics.CheckSphere(transform.position, groundCheckDistance, groundLayer);
             HandleGravity();
         }
 
         Jump();
-        ApplyVelocity();
+
+        if (!isGrinding && !isOnSlope)
+            ApplyVelocity();
     }
 
     #endregion
@@ -91,13 +103,18 @@ public class JumpBehaviour : MonoBehaviour
         if (!shouldJump) return;
         if (shouldJump) shouldJump = false;
 
-        velocity.y += Mathf.Lerp(minJumpForce, maxJumpForce, currentJumpCharge / maxJumpForce);
+        velocity.y = Mathf.Lerp(minJumpForce, maxJumpForce, currentJumpCharge / maxJumpForce);
         currentJumpCharge = 0f;
 
         if (isGrinding)
         {
             globalData.GetRailPlayerIsCurrentlyGrindingOn()?.GetComponent<Rail>()?.DetachFromRail();
             isGrinding = false;
+        }
+
+        if (isOnSlope)
+        {
+            isOnSlope = false;
         }
     }
 
@@ -106,7 +123,8 @@ public class JumpBehaviour : MonoBehaviour
         if (!isGrounded)
         {
             velocity.y -= gravity * Time.fixedDeltaTime;
-        } else if (velocity.y < 0)
+        }
+        else if (velocity.y < 0)
         {
             velocity.y = 0;
         }
